@@ -1,0 +1,49 @@
+div#editarea {
+	border: 1px solid black;
+	display: none;
+	padding: 20px;
+}
+
+div#editarea form#dataset-edit label.control-label {
+	text-align: left;
+}
+
+form#dataset-edit fieldset {
+    border: none;
+    margin-bottom: 0;
+    padding: 0;
+}
+
+#multiadd_check {
+	padding-bottom: 10px;
+	margin-bottom: 10px;
+}
+
+.tablesorter input {
+	margin-bottom: 0;
+}
+.pager .pagedisplay {
+	width: 36px;
+}
+.pager .pagesize {
+	width: 50px;
+}
+.pager label {
+	display: inline;
+	margin-left: 40px;
+}
+.tablesorter td.single_edit,
+.tablesorter th.edit,
+.tablesorter tr td:first-child {
+	text-align: center;
+}
+
+table.tablesorter thead tr th:first-child {
+	border-left: 1px solid #E6EEEE !important;
+}
+table.tablesorter thead tr th:last-child {
+	border-right: 1px solid #E6EEEE !important;
+}
+table.tablesorter thead tr th.narrowTh {
+	width: 5%;
+}

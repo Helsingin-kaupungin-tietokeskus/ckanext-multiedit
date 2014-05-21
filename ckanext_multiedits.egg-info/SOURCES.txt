@@ -1,0 +1,10 @@
+setup.py
+ckanext/__init__.py
+ckanext/multiedits/__init__.py
+ckanext_multiedits.egg-info/PKG-INFO
+ckanext_multiedits.egg-info/SOURCES.txt
+ckanext_multiedits.egg-info/dependency_links.txt
+ckanext_multiedits.egg-info/entry_points.txt
+ckanext_multiedits.egg-info/namespace_packages.txt
+ckanext_multiedits.egg-info/not-zip-safe
+ckanext_multiedits.egg-info/top_level.txt

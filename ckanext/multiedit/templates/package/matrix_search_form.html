@@ -1,0 +1,19 @@
+<form id="dataset-search" class="dataset-search clearfix"
+	action="{{ h.url_for(controller='ckanext.multiedit.controller:MultieditController', action='limit') }}"
+	method="GET">
+
+	<input type="search" class="search" name="q" value="{{ c.q }}"
+		autocomplete="off" results="0" placeholder="{{ _('Search...') }}" />
+	<input type="submit" value="{{ _('Search') }}"
+		class="btn btn-large button" />
+
+    {% if c.fields %} 
+    <span> 
+    	{% for key, value in c.fields %} 
+    	<input type="hidden" name="{{ key }}" value="{{ value }}" /> 
+    	{% endfor %}
+	</span>
+	{% endif %}
+
+	<div id="dataset-search-ext"></div>
+</form>

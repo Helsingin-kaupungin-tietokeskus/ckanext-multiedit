@@ -1,0 +1,170 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+  
+  <xi:include href="../../facets.html" />
+  <xi:include href="util.html" />
+  <py:def function="page_title">Multiedit search - ${g.site_title}</py:def>
+
+  <py:match path="primarysidebar">
+    
+    <!-- 
+    <li class="widget-container widget_text" py:if="h.am_authorized(c, actions.PACKAGE_CREATE)">
+        <h4>Add a package</h4>
+        <p>
+            Do you know of a dataset that should be added to ${g.site_title}?
+            <br/>
+            
+            <a href="${h.url_for(controller='package', action='new', id=None)}">Register it now</a>.
+        </p>
+    </li>
+     -->
+	<?python
+ 		from pylons import config
+ 		facets_str = config.get('search.facets')	
+		facets = facets_str.split(" ")
+
+ 	?>
+ 	<py:for each="facet in facets">
+ 		<?python 
+			facet_html = facet_div(facet, config.get('search.facets.' + facet + '.title'))
+		?>
+		${facet_html}
+	</py:for>
+    <li class="widget-container widget_text">
+<?python
+  from pylons import config
+  dumps_url = config.get('ckan.dumps_url')
+  dumps_format = config.get('ckan.dumps_format', '')
+  import json
+?>
+    </li>
+ 
+  </py:match>
+  <py:def function="optional_head">
+
+  	<link type="text/css" href="${g.site_url}/css/multiedit_form_style.css" rel="Stylesheet" />	
+  	<link type="text/css" href="${g.site_url}/css/blue_tablesorter_style.css" rel="Stylesheet" />	
+
+  </py:def>
+  
+  <div py:match="content">
+
+     <xi:include href="../../package/matrix_search_form_groups.html" />
+     ${field_list()}  
+	
+
+	  <py:if test="not c.query_error and c.query_count > 0 and not c.too_many_results">	  
+	    <div id="editarea">
+	    <form id="group-edit">
+	    <div class="instructions basic"><p>Choose groups to edit.</p> 
+	    </div>
+		     <?python
+            from pylons.i18n import _, ungettext, N_, gettext
+            from ckan.lib.helpers import literal
+            import ckan.forms.common as common                  
+            groups = [(h.group_name_to_title(group['name']), group['id']) for group in c.groups_available]
+            html = literal(common.fa_h.select('groups', [],
+                groups, multiple=True))
+        	?>
+		    <div py:if="c.groups_available"> 
+		      ${html}
+		    </div>
+		    <div py:if="not c.groups_available"><em>Cannot add any groups.</em></div>
+
+<!-- 	    <div class="instructions basic"><p>Enter a new value for the field.</p></div> -->
+		<input type="radio" name="mode" class="mode" value="add" checked="checked"/> Add selected datasets to groups <br />
+ 		<input type="radio" name="mode" class="mode" value="remove" /> Remove selected datasets from groups
+	  	<div class="instructions basic"><p>Select the data packages you wish to update by ticking the checkboxes below.</p></div>
+	 	<input type='submit' value='Tallenna' />
+	 	</form>	
+	 	</div> 
+	  </py:if>  
+	  
+	  <div id="messages">
+      <py:if test="c.query_error">
+        <p i18n:msg="item_count"><strong>There was an error while searching.</strong> 
+            Please try again.</p>
+      </py:if>
+      <py:if test="request.params">      
+        <h4 i18n:msg="item_count"><strong>${c.query_count}</strong> datasets found</h4>            
+     </py:if>
+      <py:if test="c.query_count == 0 and request.params">
+        <p i18n:msg="">Would you like to <a href="${h.url_for(action='new', id=None)}">create a new dataset?</a></p>
+      </py:if>
+	<p id="ajax_result"></p>
+      </div>
+      	<py:choose>
+        <py:when test="c.too_many_results">
+        	<div>
+        	<p><strong>Too many results found, try narrowing down the search (at max ${c.limit} results shown).</strong></p>
+        	<p><a href="${c.no_limit_url()}">Ignore limit (search may take longer).</a></p> 
+        	</div>
+        </py:when>
+        <py:when test="c.query_count > 0 and not c.too_many_results and not c.query_error">
+<!--             ${str(c.results)} -->
+ 	    	${package_matrix(c.results, c.core_fields)} 
+
+			<div id="pager" class="pager">
+				<!-- <form> -->
+				<a class="pager_link first" href="#">First</a>
+				<a class="pager_link prev" href="#">Prev</a>
+				<input type="text" class="pagedisplay"/>
+				<a class="pager_link next" href="#">Next</a>
+				<a class="pager_link last" href="#">Last</a>
+				<label for="pagesize">Show:</label>
+				<select id="pagesize" class="pagesize">
+					<option selected="selected"  value="10">10</option>
+					<option value="20">20</option>
+					<option value="30">30</option>
+					<option  value="50">50</option>
+					<option  value="100">100</option>
+				</select>		
+			</div>
+		</py:when>
+		</py:choose>
+
+
+      <!-- ${c.page.pager(q=c.q)} -->
+	</div>
+  <py:def function="optional_footer">
+  	<!-- IE7 FIX -->
+	<script type="text/javascript" src="${g.site_url}/scripts/json2.js" />
+	
+	<!-- Spinner if not IE8 or less-->
+	<!--[if !IE]><!-->
+		<script type="text/javascript" src="${g.site_url}/scripts/spin.min.js" />
+		<script type="text/javascript" src="${g.site_url}/scripts/spin.jquery.js" />
+	<!--<![endif]-->
+	<!--[if gt IE 8]><!-->
+		<script type="text/javascript" src="${g.site_url}/scripts/spin.min.js" />
+		<script type="text/javascript" src="${g.site_url}/scripts/spin.jquery.js" />
+	<!--<![endif]-->
+	
+	<script type="text/javascript" src="${g.site_url}/scripts/jquery.tablesorter.min.js"></script>
+	<script type="text/javascript" src="${g.site_url}/scripts/jquery.tablesorter.pager.js"></script>
+	<script type="text/javascript" src="${g.site_url}/scripts/jquery.jeditable.mini.js"></script>
+	<script type="text/javascript">	 	
+	   // some global parameters from python to javascript
+	  //<![CDATA[  	   
+	    var site_url = "${g.site_url}";
+	    var apikey = "${c.apikey}";
+	    var core_fields = ${str(c.core_fields)};
+	    var group_packages = JSON.parse('${json.dumps(c.group_packages)}');
+	    var msg_multiadd = '<strong>${_("Check here if you want to add to field instead of replacing its value.")}</strong>';
+	    var msg_no_packages_selected = '<strong>${_("Please select packages to update.")}</strong>';
+	    var msg_update_in_progress = '<strong>${_("Updating selected datasets, please wait.")}</strong>';
+	  //]]>
+	</script>
+	<script type="text/javascript" src="${g.site_url}/scripts/ajaxqueue.js"></script>
+	<script type="text/javascript" src="${g.site_url}/scripts/multiedit.main.js"></script>
+	<script type="text/javascript" src="${g.site_url}/scripts/multiedit.groups.js"></script>
+  </py:def>	
+
+  <xi:include href="../../layout.html" />
+</html>
+
+

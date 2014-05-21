@@ -1,0 +1,109 @@
+{% extends "page.html" %}
+{% import 'macros/form.html' as form %}
+
+{% block primary_content %}
+
+<section class="module">
+<div class="module-content">
+
+	{# resource "multiedit_scripts/jquery.js" #}
+	{# resource "multiedit_scripts/jquery-ui.js" #}
+	
+	{# resource "multiedit_scripts/jquery.tablesorter.js" #}
+	{# resource "multiedit_scripts/jquery.tablesorter.pager.js" %}
+	{% resource "multiedit_scripts/jquery.jeditable.mini.js" #}
+	
+	{% resource "multiedit_scripts/ajaxqueue.js" %}
+	{% resource "multiedit_scripts/multiedit.main.js" %}
+	{% resource "multiedit_scripts/multiedit.datasets.js" %}
+	
+	
+	{# resource "multiedit_css/blue_tablesorter_style.css" %}
+	{% resource "multiedit_css/multiedit_form_style.css" #}
+
+	{% include 'package/matrix_search_form.html' with context %}
+	
+	{# @TODO What is this? I could not find this function anywhere, nor
+	         does it seem to serve a function. Left unported. %} 
+	{# field_list()  #}
+	
+	{% if not c.query_error and c.query_count > 0 and not c.too_many_results %}
+	<div id="editarea">
+
+		<div class="instructions basic">
+			<p>{{ _('Choose a field to show / edit.') }}</p>
+		</div>
+
+		<select id="fieldselector"></select>
+
+		<div class="instructions basic">
+			<p>{{ _('Enter a new value for the field.') }}</p>
+		</div>
+
+		{{ h.literal(c.form) }}
+
+		<div class="instructions basic">
+			<p>{{ _('Select the data packages you wish to update by ticking the checkboxes below.') }}</p>
+		</div>
+
+	</div>
+	{% endif %}
+
+	<div id="messages">
+		{% if c.query_error %}
+		<p i18n:msg="item_count">
+			<strong>{{ _('There was an error while searching.') }}</strong> {{ _('Please try again.') }}
+		</p>
+		{% endif %}
+        
+        {% if request.params %}
+		<h4 i18n:msg="item_count">
+			<strong>{{ c.query_count }}</strong> {{ _('datasets found') }}
+		</h4>
+		{% endif %}
+		
+		{% if c.query_count == 0 and request.params %}
+			<p i18n:msg="">
+				{{ _('Would you like to') }} <a href="{{ h.url_for(action='new', id=None) }}">{{ _('create a new dataset?') }}</a>
+			</p>
+		{% endif %}
+		<p id="ajax_result"></p>
+	</div>
+	{% if c.too_many_results %}
+		<div>
+			<p>
+				<strong>{{ _('Too many results found, try narrowing down the search (at max') }} {{ c.limit }} {{ _('results shown).') }}</strong>
+			</p>
+			<p>
+				<a href="{{ c.no_limit_url() }}">{{ _('Ignore limit (search may take longer).') }}</a>
+			</p>
+		</div>
+	{% endif %}
+	{% if c.query_count > 0 and not c.too_many_results and not c.query_error %}
+		<!-- {{ "" ~ c.results }} -->
+	    
+	    {{ h.package_matrix(c.results, c.core_fields) }}
+	    
+	{% endif %}
+
+</div>
+</section>
+
+<script type="text/javascript">	 	
+  //<![CDATA[  
+    // some global parameters from python to javascript
+    var site_url = "{{ g.site_url }}";
+    var apikey = "{{ c.apikey }}";
+    var core_fields = {{ h.literal(c.core_fields) }};
+    var msg_multiadd = '<strong>{{ _("Check here if you want to add to field instead of replacing its value.") }}</strong>';
+    var msg_no_packages_selected = '<strong>{{ _("Please select packages to update.") }}</strong>';
+    var msg_update_in_progress = '<strong>{{ _("Updating selected datasets, please wait.") }}</strong>';
+  //]]>
+</script>
+{% endblock %}
+
+{% block secondary_content %}
+  {% for facet in c.facet_titles %}
+      {{ h.snippet('snippets/facet_list.html', title=c.facet_titles[facet], name=facet) }}
+  {% endfor %}
+{% endblock %}
