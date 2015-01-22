@@ -80,9 +80,10 @@
 		</div>
 	{% endif %}
 	{% if c.query_count > 0 and not c.too_many_results and not c.query_error %}
-		<!-- {{ "" ~ c.results }} -->
 	    
 	    {{ h.package_matrix(c.results, c.core_fields) }}
+
+	    {{ c.page.pager(q=c.q) }}
 	    
 	{% endif %}
 

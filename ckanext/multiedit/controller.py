@@ -146,6 +146,10 @@ class MultieditController(PackageController):
         else:
             c.sort_by_fields = [ field.split()[0] for field in sort_by.split(',') ]
 
+        def pager_url(q=None, page=None):
+            params = list(params_nopage)
+            params.append(('page', page))
+            return search_url(params, package_type).replace('/multiedit', '', 1)
 
         def no_limit_url():
             url = h.url_for(controller='ckanext.multiedit.controller:MultieditController', mode=mode, action='nolimit')
@@ -182,13 +186,13 @@ class MultieditController(PackageController):
             fq += ' capacity:"public"'
             context = {'model': model, 'session': model.Session,
                        'user': c.user or c.author, 'for_view': True}
-
+            
             data_dict = {
                 'q':q,
                 'fq':fq,
                 'facet.field':g.facets,
-                'rows':limit,
-                #'start':(page-1)*limit,
+                'rows':int(limit),
+                'start':(int(page) - 1) * int(limit),
                 'sort': sort_by,
                 'extras':search_extras
             }
@@ -200,12 +204,20 @@ class MultieditController(PackageController):
             else:
                 c.query_count = 0
                 
-            if query['count'] > int(limit):
-                c.too_many_results = True 
+            #if query['count'] > int(limit):
+            #    c.too_many_results = True 
                 
             c.facets = query['facets']
             c.search_facets = query['search_facets']
-            c.results = query['results']
+            c.page = h.Page(
+                collection=query['results'],
+                page=int(page),
+                url=pager_url,
+                item_count=query['count'],
+                items_per_page=int(limit)
+            )
+            c.page.items = query['results']
+            c.results = c.page.items
             
             c.form = self.render_package_form()
             
@@ -238,6 +250,13 @@ class MultieditController(PackageController):
             facets = plugin.dataset_facets(facets, package_type)
 
         c.facet_titles = facets
+
+        # Facet limits
+        c.search_facets_limits = {}
+        for facet in c.search_facets.keys():
+            limit = int(request.params.get('_%s_limit' % facet,
+                                           g.facets_default_number))
+            c.search_facets_limits[facet] = limit
                 
         if mode == 'groups':
             return render('ckanext/multiedit/matrix_groups.html')
@@ -264,7 +283,9 @@ class MultieditController(PackageController):
 
         c.remove_field = remove_field_nolimit
         
-        return self.perform_query(mode, 100000)
+        limit = config.get('multiedit.limit', '100')
+
+        return self.perform_query(mode, int(limit))
 
     # Performs api call to update packages, where ids are given as get-parameters: ?ids="id1,id2,id3"
     # Updated values are given in JSON as documented in ckan api docs
